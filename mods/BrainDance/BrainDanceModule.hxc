@@ -1,0 +1,27 @@
+import flixel.FlxG;
+import funkin.Conductor;
+import funkin.modding.events.ScriptEvent;
+import funkin.modding.module.Module;
+import funkin.play.PlayState;
+
+class BrainDanceModule extends Module
+{
+  function new():Void
+  {
+    super("BrainDanceModule", {state: PlayState});
+  }
+
+  override function onUpdate(event:ScriptEvent):Void
+  {
+    super.onUpdate(event);
+
+    if (PlayState.instance == null || PlayState.instance.startingSong || PlayState.instance.isGamePaused) return;
+
+    if (FlxG.keys.pressed.Q || FlxG.keys.pressed.E)
+    {
+      FlxG.sound.music.time += (FlxG.elapsed * 1000) * (FlxG.keys.pressed.Q ? -2 : 1) * ((FlxG.keys.pressed.Q && FlxG.keys.pressed.E ? 2 : 1));
+      PlayState.instance.vocals.time = FlxG.sound.music.time;
+      Conductor.instance.songPosition = FlxG.sound.music.time;
+    }
+  }
+}
