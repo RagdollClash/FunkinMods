@@ -1,0 +1,13 @@
+{
+  "title": "Brain Dance",
+  "description": "Mod that allows you to rewind and fast-foward mid-song, like Cyberpunk 2077's Brain Dance mechanic. (aka ytp maker)\nBest paired with Autoplay/Botplay.",
+  "contributors": [
+    {
+      "name": "RagdollClash",
+      "role": "Programming"
+    }
+  ],
+  "api_version": "0.8.0",
+  "mod_version": "1.0.0",
+  "license": "Apache 2.0"
+}

@@ -3,6 +3,7 @@ A repository hosting Polymod mods for [Friday Night Funkin'](https://github.com/
 
 ## Index
 - [Autoplay](mods/Autoplay)
+- [Brain Dance](mods/BrainDance)
 - [ClashUtils](mods/ClashUtils)
 - [Judgement Hitsounds](mods/JudgementHitsounds)
 - [No Combo Stack](mods/NoComboStack)
