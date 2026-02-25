@@ -1,5 +1,6 @@
 import Std;
 import flixel.FlxG;
+import funkin.Conductor;
 import funkin.modding.events.ScriptEvent;
 import funkin.modding.module.Module;
 import funkin.play.PlayState;
@@ -17,10 +18,12 @@ class PlaybackRateModule extends Module
 {
   var timeScale:Float = 1.0;
   var adjustScroll:Bool = true;
+  var maintainPitch:Bool = false;
 
   var options:Dynamic = {
     timeScale: 100,
-    adjustScroll: true
+    adjustScroll: true,
+    maintainPitch: false
   };
 
   function new():Void
@@ -47,8 +50,14 @@ class PlaybackRateModule extends Module
       options.adjustScroll = true;
     }
 
+    if (options.maintainPitch == null)
+    {
+      options.maintainPitch = false;
+    }
+
     timeScale = options.timeScale / 100;
     adjustScroll = options.adjustScroll;
+    maintainPitch = options.maintainPitch;
   }
 
   function adjustTimeScale(scale:Float):Void
@@ -77,7 +86,7 @@ class PlaybackRateModule extends Module
     Scoring.WEEK7_GOOD_THRESHOLD = 0.55 * scale;
     Scoring.WEEK7_SICK_THRESHOLD = 0.2 * scale;
 
-    if (PlayState.instance != null)
+    if (!maintainPitch && PlayState.instance != null)
     {
       PlayState.instance.playbackRate = scale;
     }
@@ -111,6 +120,12 @@ class PlaybackRateModule extends Module
         options.adjustScroll = value;
         adjustScroll = value;
       }, options.adjustScroll);
+
+      prefs.createPrefItemCheckbox("Maintain Pitch", "If enabled, the pitch of the song will stay the same regardless of playback rate.", function(value)
+      {
+        options.maintainPitch = value;
+        maintainPitch = value;
+      }, options.maintainPitch);
     }
     else
     {
@@ -177,5 +192,17 @@ class PlaybackRateModule extends Module
     }
 
     super.onDestroy(event);
+  }
+
+  override function onUpdate(event:ScriptEvent):Void
+  {
+    super.onUpdate(event);
+
+    if (timeScale != 1.0 && maintainPitch && PlayState.instance != null && !PlayState.instance.startingSong && !PlayState.instance.isGamePaused)
+    {
+      Conductor.instance.songPosition += FlxG.elapsed * 1000;
+      FlxG.sound.music.time = Conductor.instance.songPosition;
+      PlayState.instance.vocals.time = Conductor.instance.songPosition;
+    }
   }
 }
