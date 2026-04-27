@@ -1,0 +1,17 @@
+{
+  "title": "Judgement Hitsounds",
+  "description": "Plays a hitsound whenever you press a note, based off the note's judgement.",
+  "contributors": [
+    {
+      "name": "RagdollClash",
+      "role": "Programmer"
+    },
+    {
+      "name": "Funkin' Crew",
+      "role": "Assets"
+    }
+  ],
+  "api_version": "0.8.0",
+  "mod_version": "1.0.0",
+  "license": "Apache 2.0, funkin.assets license"
+}
