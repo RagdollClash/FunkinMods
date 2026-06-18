@@ -1,0 +1,28 @@
+{
+  "version": "1.1.0",
+  "name": "Pixel (Results Styled Combo)",
+  "author": "Moawling, RagdollClash",
+  "fallback": "pixel",
+  "assets": {
+    "judgementSick": {
+      "assetPath": "default:ui/popup/pixel-rsc/sick",
+      "scale": 4.2,
+      "isPixel": true
+    },
+    "judgementGood": {
+      "assetPath": "default:ui/popup/pixel-rsc/good",
+      "scale": 4.2,
+      "isPixel": true
+    },
+    "judgementBad": {
+      "assetPath": "default:ui/popup/pixel-rsc/bad",
+      "scale": 4.2,
+      "isPixel": true
+    },
+    "judgementShit": {
+      "assetPath": "default:ui/popup/pixel-rsc/shit",
+      "scale": 4.2,
+      "isPixel": true
+    }
+  }
+}

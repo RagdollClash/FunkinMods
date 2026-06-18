@@ -1,71 +1,69 @@
-import Std;
+import flixel.util.FlxTimer;
 import funkin.Highscore;
+import funkin.data.notestyle.NoteStyleRegistry;
 import funkin.graphics.FunkinSprite;
 import funkin.modding.events.ScriptEvent;
 import funkin.modding.module.Module;
 import funkin.play.PlayState;
+import funkin.play.notes.notestyle.NoteStyle;
+
+using StringTools;
 
 /**
- * A module that colors the numScore sprites
+ * A module that colors the combo popup sprites
  * according to the judgement that you were given.
  *
  * @author RagdollClash
  */
 class ResultsComboModule extends Module
 {
+  final RATING_COLORS:Map<String, Int> = [
+    "sick" => 0xFF89E59E,
+    "good" => 0xFF89C9E5,
+    "bad" => 0xFFE6CF8A,
+    "shit" => 0xFFE68C8A
+  ];
+
   function new():Void
   {
     super("ResultsComboModule", {state: PlayState});
   }
 
-  var ratingColors = [
-    "sick" => 0xFF89E59E,
-    "good" => 0xFF89C9E5,
-    "bad" => 0xFFE6CF8A,
-    "shit" => 0xFFE68C8A,
-    "miss" => 0xFFC68AE6
-  ];
+  override function onStateChangeEnd(event:StateChangeScriptEvent):Void
+  {
+    super.onStateChangeEnd(event);
 
-  var coloredCombo:Bool = false;
-  var daRating:String = "perfect";
+    if (event.targetState is PlayState)
+    {
+      var noteStyleId:String = PlayState.instance.comboPopUps.noteStyle.id;
+      var noteStyle:Null<NoteStyle> = NoteStyleRegistry.instance.fetchEntry(noteStyleId + '-rsc');
+      if (noteStyle != null) PlayState.instance.comboPopUps.noteStyle = noteStyle;
+    }
+  }
 
   override function onNoteHit(event:HitNoteScriptEvent):Void
   {
     super.onNoteHit(event);
 
-    if (PlayState.instance == null || !event.note.noteData.getMustHitNote())
-    {
+    if (PlayState.instance == null || !event.note.noteData.getMustHitNote() || !PlayState.instance.comboPopUps.noteStyle.id.endsWith('-rsc'))
       return;
-    }
 
-    daRating = event.judgement;
-    coloredCombo = false;
-  }
-
-  var noteStyles:Array<String> = ["funkin", "pixel"];
-
-  override function onUpdate(event:ScriptEvent):Void
-  {
-    super.onUpdate(event);
-
-    if (PlayState.instance == null) return;
-
-    var canColor:Bool = noteStyles.contains(PlayState.instance.noteStyle.id) && (Highscore.tallies.combo >= 10 || Highscore.tallies.combo == 0);
-
-    if (canColor && !coloredCombo)
+    FlxTimer.wait(0.0, () ->
     {
-      var popUpMembers = PlayState.instance.comboPopUps.members;
-
-      for (i in (popUpMembers.length - getComboDigitCount())...popUpMembers.length)
+      if (Highscore.tallies.combo >= 10 || Highscore.tallies.combo == 0)
       {
-        if (Std.isOfType(popUpMembers[i], FunkinSprite))
+        var popUpMembers = PlayState.instance.comboPopUps.members;
+
+        for (i in (popUpMembers.length - getComboDigitCount())...popUpMembers.length)
         {
-          popUpMembers[i].color = ratingColors.get(daRating);
+          if (popUpMembers[i] != null && popUpMembers[i] is FunkinSprite && popUpMembers[i].ID != 0x7FFFFFFF)
+          {
+            popUpMembers[i].color = RATING_COLORS.exists(event.judgement) ? RATING_COLORS.get(event.judgement) : 0xFFFFFFFF;
+            popUpMembers[i].ID = 0x7FFFFFFF;
+          }
         }
       }
-
-      coloredCombo = true;
-    }
+    });
   }
 
   function getComboDigitCount():Int
@@ -73,16 +71,16 @@ class ResultsComboModule extends Module
     var seperatedScore:Array<Int> = [];
     var tempCombo:Int = Highscore.tallies.combo;
 
+    if (tempCombo == 0)
+      return 4;
+
     while (tempCombo != 0)
     {
       seperatedScore.push(tempCombo % 10);
       tempCombo = Std.int(tempCombo / 10);
     }
-
     while (seperatedScore.length < 3)
-    {
       seperatedScore.push(0);
-    }
 
     return seperatedScore.length;
   }

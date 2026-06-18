@@ -1,10 +1,14 @@
 {
   "title": "Results Styled Combo",
-  "description": "Makes the combo counter stylized after the tallies in results.",
+  "description": "Makes the combo popups stylized after the tallies on the results screen.",
   "contributors": [
     {
       "name": "RagdollClash",
       "role": "Programming"
+    },
+    {
+      "name": "Ethan_DOORSnFNFFan",
+      "role": "Code Reference"
     },
     {
       "name": "Funkin' Crew",
@@ -12,6 +16,6 @@
     }
   ],
   "api_version": "0.8.0",
-  "mod_version": "1.0.7",
+  "mod_version": "1.1.0",
   "license": "Apache 2.0, funkin.assets license"
 }
