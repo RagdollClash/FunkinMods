@@ -1,5 +1,3 @@
-import Std;
-import funkin.graphics.FunkinSprite;
 import funkin.modding.events.ScriptEvent;
 import funkin.modding.module.Module;
 import funkin.play.PlayState;
@@ -14,26 +12,17 @@ class ComboStackModule extends Module
 {
   function new():Void
   {
-    super("ComboStackModule");
+    super("ComboStackModule", {state: PlayState});
   }
 
   override function onNoteHit(event:HitNoteScriptEvent):Void
   {
     super.onNoteHit(event);
 
-    var state = PlayState.instance;
-
-    if (state == null || !event.note.noteData.getMustHitNote())
-    {
+    if (PlayState.instance == null || !event.note.noteData.getMustHitNote())
       return;
-    }
 
-    for (member in state.comboPopUps.members)
-    {
-      if (Std.isOfType(member, FunkinSprite))
-      {
-        member.destroy();
-      }
-    }
+    for (member in PlayState.instance.comboPopUps.members)
+      member.destroy();
   }
 }
