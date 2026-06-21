@@ -1,13 +1,9 @@
-import flixel.util.FlxTimer;
-import funkin.Highscore;
 import funkin.data.notestyle.NoteStyleRegistry;
 import funkin.graphics.FunkinSprite;
 import funkin.modding.events.ScriptEvent;
 import funkin.modding.module.Module;
 import funkin.play.PlayState;
 import funkin.play.notes.notestyle.NoteStyle;
-
-using StringTools;
 
 /**
  * A module that colors the combo popup sprites
@@ -29,59 +25,44 @@ class ResultsComboModule extends Module
     super("ResultsComboModule", {state: PlayState});
   }
 
+  var judgement:String = '';
+  var comboKeys:Array<String> = [];
+
   override function onStateChangeEnd(event:StateChangeScriptEvent):Void
   {
     super.onStateChangeEnd(event);
+
+    judgement = '';
+    comboKeys.resize(0);
 
     if (event.targetState is PlayState)
     {
       var noteStyleId:String = PlayState.instance.comboPopUps.noteStyle.id;
       var noteStyle:Null<NoteStyle> = NoteStyleRegistry.instance.fetchEntry(noteStyleId + '-rsc');
-      if (noteStyle != null) PlayState.instance.comboPopUps.noteStyle = noteStyle;
+      if (noteStyle != null)
+      {
+        PlayState.instance.comboPopUps.noteStyle = noteStyle;
+        PlayState.instance.comboPopUps.memberAdded.add(onPopUpMemberAdded);
+        for (i in 0...10) comboKeys.push(Paths.image(noteStyle.buildComboNumSpritePath(i)));
+      }
     }
   }
 
   override function onNoteHit(event:HitNoteScriptEvent):Void
   {
     super.onNoteHit(event);
-
-    if (PlayState.instance == null || !event.note.noteData.getMustHitNote() || !PlayState.instance.comboPopUps.noteStyle.id.endsWith('-rsc'))
-      return;
-
-    FlxTimer.wait(0.0, () ->
-    {
-      if (Highscore.tallies.combo >= 10 || Highscore.tallies.combo == 0)
-      {
-        var popUpMembers = PlayState.instance.comboPopUps.members;
-
-        for (i in (popUpMembers.length - getComboDigitCount())...popUpMembers.length)
-        {
-          if (popUpMembers[i] != null && popUpMembers[i] is FunkinSprite && popUpMembers[i].ID != 0x7FFFFFFF)
-          {
-            popUpMembers[i].color = RATING_COLORS.exists(event.judgement) ? RATING_COLORS.get(event.judgement) : 0xFFFFFFFF;
-            popUpMembers[i].ID = 0x7FFFFFFF;
-          }
-        }
-      }
-    });
+    if (event.note.noteData.getMustHitNote()) judgement = event.judgement;
   }
 
-  function getComboDigitCount():Int
+  override function onNoteMiss(event:NoteScriptEvent):Void
   {
-    var seperatedScore:Array<Int> = [];
-    var tempCombo:Int = Highscore.tallies.combo;
+    super.onNoteMiss(event);
+    judgement = 'miss';
+  }
 
-    if (tempCombo == 0)
-      return 4;
-
-    while (tempCombo != 0)
-    {
-      seperatedScore.push(tempCombo % 10);
-      tempCombo = Std.int(tempCombo / 10);
-    }
-    while (seperatedScore.length < 3)
-      seperatedScore.push(0);
-
-    return seperatedScore.length;
+  function onPopUpMemberAdded(member:FunkinSprite):Void
+  {
+    if (comboKeys.contains(member.graphic.key))
+      member.color = RATING_COLORS.exists(judgement) ? RATING_COLORS.get(judgement) : 0xFFFFFFFF;
   }
 }
