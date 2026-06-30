@@ -1,9 +1,8 @@
-import Std;
-import flixel.FlxG;
 import funkin.modding.events.ScriptEvent;
 import funkin.modding.module.Module;
 import funkin.play.PlayState;
 import funkin.play.scoring.Scoring;
+import funkin.play.scoring.ScoringSystem;
 import funkin.save.Save;
 import funkin.ui.options.OptionsState;
 
@@ -25,7 +24,7 @@ class PlaybackRateModule extends Module
 
   function new():Void
   {
-    super("PlaybackRateModule");
+    super("PlaybackRateModule", 1);
 
     if (Save.instance.modOptions.get("mandm.playbackrate") == null)
     {
@@ -54,33 +53,7 @@ class PlaybackRateModule extends Module
   function adjustTimeScale(scale:Float):Void
   {
     FlxG.timeScale = scale;
-
-    // PBOT1 (Points Based On Timing v1)
-    Scoring.PBOT1_PERFECT_THRESHOLD = 5.0 * scale;
-    Scoring.PBOT1_MISS_THRESHOLD = 160.0 * scale;
-    Scoring.PBOT1_KILLER_THRESHOLD = 12.5 * scale;
-    Scoring.PBOT1_SICK_THRESHOLD = 45.0 * scale;
-    Scoring.PBOT1_GOOD_THRESHOLD = 90.0 * scale;
-    Scoring.PBOT1_BAD_THRESHOLD = 135.0 * scale;
-    Scoring.PBOT1_SHIT_THRESHOLD = 160.0 * scale;
-
-    // Legacy
-    Scoring.LEGACY_HIT_WINDOW = 166.66666666666666 * scale;
-    Scoring.LEGACY_SICK_THRESHOLD = 0.2 * scale;
-    Scoring.LEGACY_GOOD_THRESHOLD = 0.75 * scale;
-    Scoring.LEGACY_BAD_THRESHOLD = 0.9 * scale;
-    Scoring.LEGACY_SHIT_THRESHOLD = 1.0 * scale;
-
-    // Week 7
-    Scoring.WEEK7_HIT_WINDOW = Scoring.LEGACY_HIT_WINDOW;
-    Scoring.WEEK7_BAD_THRESHOLD = 0.8 * scale;
-    Scoring.WEEK7_GOOD_THRESHOLD = 0.55 * scale;
-    Scoring.WEEK7_SICK_THRESHOLD = 0.2 * scale;
-
-    if (PlayState.instance != null)
-    {
-      PlayState.instance.playbackRate = scale;
-    }
+    PlayState.instance?.playbackRate = scale;
   }
 
   override function onCreate(event:ScriptEvent):Void
@@ -91,8 +64,8 @@ class PlaybackRateModule extends Module
 
   override function onStateChangeEnd(event:StateChangeScriptEvent):Void
   {
-    var isPlayState:Bool = Std.isOfType(event.targetState, PlayState);
-    var isOptions:Bool = Std.isOfType(event.targetState, OptionsState);
+    var isPlayState:Bool = (event.targetState is PlayState);
+    var isOptions:Bool = (event.targetState is OptionsState);
 
     adjustTimeScale(isPlayState ? timeScale : 1.0);
 
@@ -125,12 +98,32 @@ class PlaybackRateModule extends Module
   {
     adjustTimeScale(timeScale);
 
-    if (adjustScroll)
-    {
-      PlayState.instance.currentChart.scrollSpeed /= timeScale;
-    }
+    if (adjustScroll) PlayState.instance.currentChart.scrollSpeed /= timeScale;
 
     super.onSongLoaded(event);
+  }
+
+  public override function onNoteHit(event:HitNoteScriptEvent):Void
+  {
+    if (event.note.noteData.getMustHitNote() && event.judgement != 'perfect' && timeScale != 1.0)
+    {
+      event.score = Scoring.scoreNote(event.hitDiff / timeScale, ScoringSystem.PBOT1);
+      event.judgement = Scoring.judgeNote(event.hitDiff / timeScale, ScoringSystem.PBOT1);
+
+      switch (event.judgement)
+      {
+        case 'sick':
+          event.isComboBreak = Constants.JUDGEMENT_SICK_COMBO_BREAK;
+        case 'good':
+          event.isComboBreak = Constants.JUDGEMENT_GOOD_COMBO_BREAK;
+        case 'bad':
+          event.isComboBreak = Constants.JUDGEMENT_BAD_COMBO_BREAK;
+        case 'shit':
+          event.isComboBreak = Constants.JUDGEMENT_SHIT_COMBO_BREAK;
+      }
+    }
+
+    super.onNoteHit(event);
   }
 
   override function onPause(event:PauseScriptEvent):Void
@@ -159,10 +152,7 @@ class PlaybackRateModule extends Module
 
   override function onSongRetry(event:ScriptEvent):Void
   {
-    if (adjustScroll)
-    {
-      PlayState.instance.currentChart.scrollSpeed *= timeScale;
-    }
+    if (adjustScroll) PlayState.instance.currentChart.scrollSpeed *= timeScale;
 
     super.onSongRetry(event);
   }
@@ -171,10 +161,7 @@ class PlaybackRateModule extends Module
   {
     adjustTimeScale(1.0);
 
-    if (adjustScroll && PlayState.instance != null)
-    {
-      PlayState.instance.currentChart.song.cacheCharts(true);
-    }
+    if (adjustScroll && PlayState.instance != null) PlayState.instance.currentChart.song.cacheCharts(true);
 
     super.onDestroy(event);
   }
